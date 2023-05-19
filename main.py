@@ -77,7 +77,7 @@ def create_header(match_info: MatchInfo) -> str:
     header += f'\n\n{header_description}\n\n{toss_string}\n\n{teams}'
     
     if officials:
-        header += f'\n\nUmpires: {", ".join(officials["umpires"])}\n'
+        header += f'\n\nUmpires: {", ".join(officials["umpires"])}\n\n'
 
     return header
 
@@ -230,9 +230,10 @@ def generate_output(match_data: MatchData) -> None:
     output += header
 
     for innings in narrative:
-        output += f'\n\n{innings["title"]}\n\n{innings["overs_table"]}\n\n'
+        output += f'\n\n{innings["title"]}\n{innings["overs_table"]}\n\n'
 
-    print(output)
+    with open('narrative_outputs/outfile.txt', 'w') as file:
+        file.write(str(output))
 
 
 
