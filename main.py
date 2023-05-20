@@ -2,6 +2,7 @@
 Convert cricsheet JSON to Narrative file
 '''
 import json
+from helpers import break_string
 from datetime import datetime
 from prettytable import PrettyTable
 from match_data import MatchData, MatchInfo, MatchInningsOver, MatchInnings
@@ -65,9 +66,14 @@ def create_header(match_info: MatchInfo) -> str:
     else:
         header_description += f'on {dates[0]}.'
 
+    header_description = break_string(header_description, 98)
+
     toss_string = f'{toss["winner"]} won the toss and decided to {toss["decision"]}.'
+
+    home_players = break_string(", ".join(players.get(home_team)), 98, names=True)
+    visiting_players = break_string(", ".join(players.get(away_team)), 98, names=True)
     
-    teams = f'{home_team.upper()}\n{", ".join(players.get(home_team))}\n\n{away_team.upper()}\n{", ".join(players.get(away_team))}'
+    teams = f'{home_team.upper()}\n{home_players}\n\n{away_team.upper()}\n{visiting_players}'
 
     header = header_title
     
@@ -89,7 +95,7 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
     
     remark = ''
 
-    if total_runs is 0 and wickets is None and replacements is None and review is None:
+    if total_runs == 0 and wickets == None == replacements == None and review == None:
         remark = 'No incident or score'
     else:
         if replacements:
@@ -101,7 +107,7 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
                 remark += f'{replacement["in"]} replaces {replacement["out"]}. {" ".join(word.capitalize() for word in replacement["reason"].split("_"))}.'
 
         if batter_runs > 0:
-            if (batter_runs is 4 or batter_runs is 6) and non_boundary is None:
+            if (batter_runs == 4 or batter_runs == 6) and non_boundary == None:
                 remark += f'Batter hits, umpire signals Boundary {batter_runs}.'
             else:
                 remark += f'Batter runs {batter_runs}'
@@ -116,12 +122,12 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
         if review:
             decision = review["decision"]
             if wickets:
-                if decision is 'upheld':
+                if decision == 'upheld':
                     remark += f'{review["by"]} successfully review.'
                 else:
                     remark += f'{review["by"]} unsuccessfully review.'
             else:
-                if decision is 'upheld':
+                if decision == 'upheld':
                     remark += f'{review["batter"]} given out, but {review["by"]} successfully review.'
                 else:
                     remark += f'{review["by"]} unsuccessfully review for dismissal.'
@@ -238,7 +244,7 @@ def generate_output(match_data: MatchData) -> None:
 
 
 
-match_data = read_file('json_files/1270838.json')
+match_data = read_file('json_files/1252729.json')
 
 generate_output(match_data)
     
