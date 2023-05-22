@@ -25,6 +25,7 @@ Typing:
 
 Dependencies:
 - json: Provides functions for working with JSON data.
+- os: Provides functions for working with the operating system.
 - helpers: A module that provides utility functions for string manipulation.
 - datetime: Provides classes for manipulating dates and times.
 - prettytable: A library for displaying tabular data in a visually appealing ASCII table format.
@@ -33,6 +34,7 @@ Note: This module assumes the availability of the required dependencies and the 
         file format conforming to cricsheet standards.
 """
 import json
+import os
 from datetime import datetime
 from typing import Dict, List
 
@@ -371,12 +373,34 @@ def create_match_report(data: MatchData) -> None:
     for innings in narrative:
         output += f'\n\n{innings["title"]}\n{innings["overs_table"]}\n\n'
 
-    with open('narrative_outputs/outfile.txt', 'w', encoding='utf-8') as file:
+    filename = f'narrative_outputs/{data.info["dates"][0]}_{data.info["teams"][0].replace(" ", "_")}_vs_{data.info["teams"][1].replace(" ", "_")}.txt'
+
+    with open(filename, 'w', encoding='utf-8') as file:
         file.write(str(output))
 
 
+def process_folder(cricsheet_folder_path: str) -> None:
+    """
+    Process each JSON file in the specified folder.
+
+    Args:
+        cricsheet_folder_path: A string representing the path to the folder containing JSON files.
+
+    Returns:
+        None
+    """
+    # Get a list of JSON files in the selected folder
+    json_files = [file for file in os.listdir(cricsheet_folder_path) if file.endswith('.json')]
+
+    for json_file in json_files:
+        file_path = os.path.join(cricsheet_folder_path, json_file)
+        match_data = read_file(file_path)
+        create_match_report(match_data)
 
 
-match_data = read_file('json_files/1252729.json')
+if __name__ == "__main__":
+    # Prompt the user to select a folder
+    folder_path = input('Enter the folder path for the folder containing cricsheet json files:')
 
-create_match_report(match_data)
+    if folder_path:
+        process_folder(folder_path)
