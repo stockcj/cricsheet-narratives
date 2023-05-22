@@ -1,13 +1,17 @@
 """
 Convert cricsheet JSON to Narrative file.
 
-This module provides functions to convert cricsheet JSON data into a narrative file format. It includes functions for reading the JSON file, creating headers, generating remarks for each delivery, formatting overs and innings, creating the match narrative, and generating the final output.
+This module provides functions to convert cricsheet JSON data into a narrative file format. It
+includes functions for reading the JSON file, creating headers, generating remarks for each
+delivery, formatting overs and innings, creating the match narrative, and generating the final
+output.
 
 Module functions:
 - read_file: Reads the cricsheet JSON file and returns the MatchData object.
 - create_sub_heading: Creates a sub-heading for the match header based on the event details.
 - create_header: Creates the header for the match narrative.
-- create_remark: Creates the remark for a delivery based on the runs, extras, wickets, replacements, and review data.
+- create_remark: Creates the remark for a delivery based on the runs, extras, wickets,
+    replacements, and review data.
 - create_over: Creates a formatted dictionary for an over.
 - create_innings: Creates a formatted dictionary for an innings.
 - create_narrative: Creates the narrative for the match.
@@ -25,7 +29,8 @@ Dependencies:
 - datetime: Provides classes for manipulating dates and times.
 - prettytable: A library for displaying tabular data in a visually appealing ASCII table format.
 
-Note: This module assumes the availability of the required dependencies and the appropriate JSON file format conforming to cricsheet standards.
+Note: This module assumes the availability of the required dependencies and the appropriate JSON
+        file format conforming to cricsheet standards.
 """
 import json
 from datetime import datetime
@@ -48,7 +53,7 @@ def read_file(file_path: str) -> MatchData:
         MatchData: The parsed match data.
 
     """
-    with open(file_path) as file:
+    with open(file_path, encoding="utf-8") as file:
         data = json.load(file)
 
     # replace the 'from' key of any powerplays dicts with the name 'first_delivery'
@@ -57,8 +62,8 @@ def read_file(file_path: str) -> MatchData:
             for powerplay in innings['powerplays']:
                 powerplay['first_delivery'] = powerplay.pop('from')
 
-    match_data = MatchData(**data)
-    return match_data
+    data = MatchData(**data)
+    return data
 
 
 def create_sub_heading(event: Dict) -> str:
@@ -117,8 +122,9 @@ def create_header(match_info: MatchInfo) -> str:
 
     header_title = f'{home_team.upper()} vs {away_team.upper()}'
     header_sub = create_sub_heading(event) if event else None
-    
-    header_description = f'{team_type.title()} {match_type} match between {home_team} and {away_team} at {venue} '
+
+    header_description = f'\
+        {team_type.title()} {match_type} match between {home_team} and {away_team} at {venue} '
 
     if len(dates) > 1:
         header_description += f'between {dates[0]} and {dates[-1]}.'
@@ -131,23 +137,29 @@ def create_header(match_info: MatchInfo) -> str:
 
     home_players = break_string(", ".join(players.get(home_team)), 98, names=True)
     visiting_players = break_string(", ".join(players.get(away_team)), 98, names=True)
-    
+
     teams = f'{home_team.upper()}\n{home_players}\n\n{away_team.upper()}\n{visiting_players}'
 
     header = header_title
-    
+
     if header_sub:
         header += f'\n{header_sub}'
-    
+
     header += f'\n\n{header_description}\n\n{toss_string}\n\n{teams}'
-    
+
     if officials:
         header += f'\n\nUmpires: {", ".join(officials["umpires"])}\n\n'
 
     return header
 
 
-def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replacements: Dict = None, review: Dict = None) -> str:
+def create_remark(
+        runs: Dict,
+        extras: Dict = None,
+        wickets: List = None,
+        replacements: Dict = None,
+        review: Dict = None
+        ) -> str:
     """
     Creates the remark for a particular ball delivery.
 
@@ -165,22 +177,26 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
     total_runs = runs["total"]
     batter_runs = runs["batter"]
     non_boundary = runs.get('non_boundary')
-    
+
     remark = ''
 
-    if total_runs == 0 and wickets == None == replacements == None and review == None:
+    if total_runs == 0 and wickets == None == replacements == None and review is None:
         remark = 'No incident or score'
     else:
         if replacements:
             role_replacements = replacements.get('role', [])
             match_replacements = replacements.get('match', [])
             for replacement in role_replacements:
-                remark += f'{replacement["in"]} replaces {replacement["role"]} {replacement.get("out", "")}. {replacement["reason"].title()}.'
+                remark += f'\
+                    {replacement["in"]} replaces {replacement["role"]} {replacement.get("out", "")}.\
+                        {replacement["reason"].title()}.'
             for replacement in match_replacements:
-                remark += f'{replacement["in"]} replaces {replacement["out"]}. {" ".join(word.capitalize() for word in replacement["reason"].split("_"))}.'
+                remark += f'\
+                    {replacement["in"]} replaces {replacement["out"]}.\
+                        {" ".join(word.capitalize() for word in replacement["reason"].split("_"))}.'
 
         if batter_runs > 0:
-            if (batter_runs == 4 or batter_runs == 6) and non_boundary == None:
+            if (batter_runs in (4,6)) and non_boundary is None:
                 remark += f'Batter hits, umpire signals Boundary {batter_runs}.'
             else:
                 remark += f'Batter runs {batter_runs}'
@@ -201,7 +217,8 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
                     remark += f'{review["by"]} unsuccessfully review.'
             else:
                 if decision == 'upheld':
-                    remark += f'{review["batter"]} given out, but {review["by"]} successfully review.'
+                    remark += f'{review["batter"]}\
+                        given out, but {review["by"]} successfully review.'
                 else:
                     remark += f'{review["by"]} unsuccessfully review for dismissal.'
 
@@ -211,12 +228,14 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
                 player_out = wicket["player_out"]
                 fielders = wicket.get('fielders')
                 if fielders:
-                    fielders_string = ', '.join([f'{fielder["name"]} (sub)' if fielder.get("substitute") else fielder["name"] for fielder in fielders])
+                    fielders_string = ', '.join([f'{fielder["name"]} (sub)'
+                                                 if fielder.get("substitute")
+                                                 else fielder["name"] for fielder in fielders])
                     remark += f'{player_out} given out {method_of_dismissal} {fielders_string}.'
                 else:
                     remark += f'{player_out} given out {method_of_dismissal}.'
 
-    return remark.strip()    
+    return remark.strip()
 
 
 def create_over(over: MatchInningsOver) -> Dict:
@@ -241,13 +260,13 @@ def create_over(over: MatchInningsOver) -> Dict:
         wickets = delivery.get('wickets')
         replacements = delivery.get('replacements')
         review = delivery.get('review')
-        
+
         remarks = create_remark(runs, extras, wickets, replacements, review)
 
         ball = {"num": ball_num, "bowler": bowler, "batter": batter, "remarks": remarks}
 
         deliveries.append(ball)
-    
+
     formatted_over = {"over": over_num, "deliveries": deliveries}
 
     return formatted_over
@@ -270,7 +289,7 @@ def create_innings(index: int, innings: MatchInnings, match_type: str) -> Dict:
     innings_title = f'{innings["team"]}'
 
     if match_type in ['Test','MDM']:
-        if index == 0 or index == 1:
+        if index in (0,1):
             innings_title += ' - 1st Innings\n'
         else:
             innings_title += ' - 2nd Innings\n'
@@ -287,12 +306,12 @@ def create_innings(index: int, innings: MatchInnings, match_type: str) -> Dict:
     table.align['Bowler'] = 'l'
     table.align['Batter'] = 'l'
     table.align['Remarks'] = 'l'
-    
+
     for over in innings_overs:
         previous_over = None
         previous_bowler = None
         previous_batter = None
-        for index, delivery in enumerate(over["deliveries"]):
+        for i, delivery in enumerate(over["deliveries"]):
             current_over = over["over"]
             current_bowler = delivery["bowler"]
             current_batter = delivery["batter"]
@@ -300,17 +319,18 @@ def create_innings(index: int, innings: MatchInnings, match_type: str) -> Dict:
             this_over = current_over if current_over != previous_over else ""
             bowler = current_bowler if current_bowler != previous_bowler else ""
             batter = current_batter if current_batter != previous_batter else ""
-            if index == len(over["deliveries"]) - 1:
-                table.add_row([this_over, bowler, batter, delivery["num"], delivery["remarks"]], divider=True)
+            if i == len(over["deliveries"]) - 1:
+                table.add_row([this_over, bowler, batter, delivery["num"],
+                               delivery["remarks"]], divider=True)
             else:
                 table.add_row([this_over, bowler, batter, delivery["num"], delivery["remarks"]])
             previous_bowler = current_bowler
             previous_batter = current_batter
             previous_over = current_over
-    
+
     return {"title": innings_title, "overs_table": table}
 
-    
+
 def create_narrative(innings_data: MatchInnings, match_type: str) -> List:
     """
     Creates the narrative for the match.
@@ -325,14 +345,14 @@ def create_narrative(innings_data: MatchInnings, match_type: str) -> List:
     """
 
     match_narrative = []
-    
+
     for index, innings in enumerate(innings_data):
         match_narrative.append(create_innings(index, innings, match_type))
 
     return match_narrative
 
 
-def create_match_report(match_data: MatchData) -> None:
+def create_match_report(data: MatchData) -> None:
     """
     Creates the match report.
 
@@ -341,9 +361,9 @@ def create_match_report(match_data: MatchData) -> None:
 
     """
 
-    header = create_header(match_data.info)
-    narrative = create_narrative(match_data.innings, match_data.info["match_type"])
-    
+    header = create_header(data.info)
+    narrative = create_narrative(data.innings, data.info["match_type"])
+
     output = ''
 
     output += header
@@ -351,7 +371,7 @@ def create_match_report(match_data: MatchData) -> None:
     for innings in narrative:
         output += f'\n\n{innings["title"]}\n{innings["overs_table"]}\n\n'
 
-    with open('narrative_outputs/outfile.txt', 'w') as file:
+    with open('narrative_outputs/outfile.txt', 'w', encoding='utf-8') as file:
         file.write(str(output))
 
 
@@ -360,5 +380,3 @@ def create_match_report(match_data: MatchData) -> None:
 match_data = read_file('json_files/1252729.json')
 
 create_match_report(match_data)
-    
-
