@@ -206,6 +206,8 @@ def create_remark(
         if extras:
             extras_string = ''
             for extra_type, extra_runs in extras.items():
+                if extra_runs == 1:
+                    extra_type = extra_type.removesuffix('s')
                 extras_string += f'{extra_runs} {extra_type}, '
             extras_string = extras_string.rstrip(', ')
             remark += f'Umpire signals {extras_string}.'
