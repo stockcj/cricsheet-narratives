@@ -306,6 +306,7 @@ def create_innings(index: int, innings: MatchInnings, match_type: str) -> Dict:
     table = PrettyTable(['Over', 'Bowler', 'Batter', 'Delivery', 'Remarks'])
 
     table._max_width = {'Over': 5, 'Bowler': 15, 'Batter': 15, 'Delivery': 8, 'Remarks': 45}
+    table._min_width = {'Over': 5, 'Bowler': 15, 'Batter': 15, 'Delivery': 8, 'Remarks': 45}
 
     table.align['Bowler'] = 'l'
     table.align['Batter'] = 'l'
