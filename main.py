@@ -183,7 +183,7 @@ def create_remark(
     remark = ''
 
     if total_runs == 0 and wickets == None == replacements == None and review is None:
-        remark = 'No incident or score'
+        remark = 'No incident or score.'
     else:
         if replacements:
             role_replacements = replacements.get('role', [])
@@ -201,7 +201,7 @@ def create_remark(
             if (batter_runs in (4,6)) and non_boundary is None:
                 remark += f'Batter hits, umpire signals Boundary {batter_runs}.'
             else:
-                remark += f'Batter runs {batter_runs}'
+                remark += f'Batter runs {batter_runs}. '
 
         if extras:
             extras_string = ''
@@ -304,6 +304,8 @@ def create_innings(index: int, innings: MatchInnings, match_type: str) -> Dict:
         innings_overs.append(create_over(over))
 
     table = PrettyTable(['Over', 'Bowler', 'Batter', 'Delivery', 'Remarks'])
+
+    table._max_width = {'Over': 5, 'Bowler': 15, 'Batter': 15, 'Delivery': 8, 'Remarks': 45}
 
     table.align['Bowler'] = 'l'
     table.align['Batter'] = 'l'
