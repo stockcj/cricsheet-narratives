@@ -1,14 +1,53 @@
-'''
-Convert cricsheet JSON to Narrative file
-'''
+"""
+Convert cricsheet JSON to Narrative file.
+
+This module provides functions to convert cricsheet JSON data into a narrative file format. It includes functions for reading the JSON file, creating headers, generating remarks for each delivery, formatting overs and innings, creating the match narrative, and generating the final output.
+
+Module functions:
+- read_file: Reads the cricsheet JSON file and returns the MatchData object.
+- create_sub_heading: Creates a sub-heading for the match header based on the event details.
+- create_header: Creates the header for the match narrative.
+- create_remark: Creates the remark for a delivery based on the runs, extras, wickets, replacements, and review data.
+- create_over: Creates a formatted dictionary for an over.
+- create_innings: Creates a formatted dictionary for an innings.
+- create_narrative: Creates the narrative for the match.
+- create_match_report: Generates the output narrative file.
+
+Typing:
+- MatchData: Represents the match data structure.
+- MatchInfo: Represents the match information structure.
+- MatchInningsOver: Represents the structure of an innings over.
+- MatchInnings: Represents the structure of an innings.
+
+Dependencies:
+- json: Provides functions for working with JSON data.
+- helpers: A module that provides utility functions for string manipulation.
+- datetime: Provides classes for manipulating dates and times.
+- prettytable: A library for displaying tabular data in a visually appealing ASCII table format.
+
+Note: This module assumes the availability of the required dependencies and the appropriate JSON file format conforming to cricsheet standards.
+"""
 import json
-from helpers import break_string
 from datetime import datetime
-from prettytable import PrettyTable
-from match_data import MatchData, MatchInfo, MatchInningsOver, MatchInnings
 from typing import Dict, List
 
+from prettytable import PrettyTable
+
+from helpers import break_string
+from match_data import MatchData, MatchInfo, MatchInnings, MatchInningsOver
+
+
 def read_file(file_path: str) -> MatchData:
+    """
+    Reads the cricsheet JSON file and returns a MatchData object.
+
+    Args:
+        file_path (str): The path to the JSON file.
+
+    Returns:
+        MatchData: The parsed match data.
+
+    """
     with open(file_path) as file:
         data = json.load(file)
 
@@ -23,6 +62,16 @@ def read_file(file_path: str) -> MatchData:
 
 
 def create_sub_heading(event: Dict) -> str:
+    """
+    Creates a sub-heading for the match header.
+
+    Args:
+        event (Dict): The event data provided in the MatchData.
+
+    Returns:
+        str: The sub-heading string.
+
+    """
     name = event['name']
     match_number = event.get('match_number', '')
     group = event.get('group', '')
@@ -43,6 +92,16 @@ def create_sub_heading(event: Dict) -> str:
 
 
 def create_header(match_info: MatchInfo) -> str:
+    """
+    Creates the match header.
+
+    Args:
+        match_info (MatchInfo): The match information.
+
+    Returns:
+        str: The header string.
+
+    """
     home_team: List = match_info['teams'][1]
     away_team: List = match_info['teams'][0]
     venue: MatchInfo.venue = match_info['venue']
@@ -88,7 +147,21 @@ def create_header(match_info: MatchInfo) -> str:
     return header
 
 
-def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replacements: Dict = None, review: Dict = None):
+def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replacements: Dict = None, review: Dict = None) -> str:
+    """
+    Creates the remark for a particular ball delivery.
+
+    Args:
+        runs (Dict): The runs scored in the delivery.
+        extras (Dict, optional): The extras in the delivery. Defaults to None.
+        wickets (List, optional): The wickets taken in the delivery. Defaults to None.
+        replacements (Dict, optional): The player replacements in the delivery. Defaults to None.
+        review (Dict, optional): The review in the delivery. Defaults to None.
+
+    Returns:
+        str: The remark string.
+
+    """
     total_runs = runs["total"]
     batter_runs = runs["batter"]
     non_boundary = runs.get('non_boundary')
@@ -147,6 +220,16 @@ def create_remark(runs: Dict, extras: Dict = None, wickets: List = None, replace
 
 
 def create_over(over: MatchInningsOver) -> Dict:
+    """
+    Creates a formatted dictionary for an over.
+
+    Args:
+        over (MatchInningsOver): The over data.
+
+    Returns:
+        Dict: The formatted over data.
+
+    """
     over_num = over["over"] + 1
     deliveries = []
     for index, delivery in enumerate(over["deliveries"]):
@@ -170,7 +253,19 @@ def create_over(over: MatchInningsOver) -> Dict:
     return formatted_over
 
 
-def create_innings(index: int, innings: MatchInnings, match_type: str):
+def create_innings(index: int, innings: MatchInnings, match_type: str) -> Dict:
+    """
+    Creates a formatted dictionary for an innings.
+
+    Args:
+        index (int): The index of the innings.
+        innings (MatchInnings): The innings data.
+        match_type (str): The match type.
+
+    Returns:
+        Dict: The formatted innings data.
+
+    """
 
     innings_title = f'{innings["team"]}'
 
@@ -217,6 +312,17 @@ def create_innings(index: int, innings: MatchInnings, match_type: str):
 
     
 def create_narrative(innings_data: MatchInnings, match_type: str) -> List:
+    """
+    Creates the narrative for the match.
+
+    Args:
+        innings_data (MatchInnings): The innings data.
+        match_type (str): The match type.
+
+    Returns:
+        List: The list of formatted innings data.
+
+    """
 
     match_narrative = []
     
@@ -226,7 +332,14 @@ def create_narrative(innings_data: MatchInnings, match_type: str) -> List:
     return match_narrative
 
 
-def generate_output(match_data: MatchData) -> None:
+def create_match_report(match_data: MatchData) -> None:
+    """
+    Creates the match report.
+
+    Args:
+        match_data (MatchData): the MatchData representation of the cricsheet JSON data.
+
+    """
 
     header = create_header(match_data.info)
     narrative = create_narrative(match_data.innings, match_data.info["match_type"])
@@ -246,6 +359,6 @@ def generate_output(match_data: MatchData) -> None:
 
 match_data = read_file('json_files/1252729.json')
 
-generate_output(match_data)
+create_match_report(match_data)
     
 
