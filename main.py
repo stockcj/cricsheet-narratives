@@ -232,9 +232,9 @@ def create_remark(
                 player_out = wicket["player_out"]
                 fielders = wicket.get('fielders')
                 if fielders:
-                    fielders_string = ', '.join([f'{fielder["name"]} (sub)'
+                    fielders_string = ', '.join([f'{fielder.get("name", "unknown")} (sub)'
                                                  if fielder.get("substitute")
-                                                 else fielder["name"] for fielder in fielders])
+                                                 else fielder.get("name", "unknown") for fielder in fielders])
                     remark += f'{player_out} given out {method_of_dismissal} {fielders_string}.'
                 else:
                     remark += f'{player_out} given out {method_of_dismissal}.'
@@ -378,7 +378,7 @@ def create_match_report(data: MatchData) -> None:
     for innings in narrative:
         output += f'\n\n{innings["title"]}\n{innings["overs_table"]}\n\n'
 
-    filename = f'narrative_outputs/{data.info["dates"][0]}_{data.info["teams"][0].replace(" ", "_")}_vs_{data.info["teams"][1].replace(" ", "_")}.txt'
+    filename = f'narrative_outputs/{data.info["dates"][0]}_{data.info["teams"][0].replace(" ", "_")}_vs_{data.info["teams"][1].replace(" ", "_")}_{data.info["match_type"]}.txt'
 
     with open(filename, 'w', encoding='utf-8') as file:
         file.write(str(output))
